@@ -21,11 +21,22 @@ sleep_timeout = 300  # 5 minutos em segundos
 sleep_gif_name = 'animated_sleepy.gif'
 is_sleeping = False  # Novo estado para verificar se está no modo sleep
 
+def rotate_gif(input_path, output_path):
+    try:
+        command = [
+            'ffmpeg', '-i', input_path, '-vf', 'transpose=2,transpose=2', 
+            output_path, '-y'
+        ]
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        rospy.logerr(f"Erro ao rotacionar o GIF: {e}")
+
 def play_gif(gif_name):
     global current_process, current_gif, last_gif_time
     try:
         # Define o caminho absoluto para o diretório das imagens
         gif_path = os.path.join('/home/gabriel/lisa_ws/src/estrutura/Images/telas', gif_name)
+        rotated_gif_path = os.path.join('/home/gabriel/lisa_ws/src/estrutura/Images/telas', 'rotated_' + gif_name)
         rospy.loginfo(f"Tentando exibir GIF: {gif_path}")
 
         # Verifica se o arquivo existe
@@ -33,11 +44,14 @@ def play_gif(gif_name):
             rospy.logerr(f"O arquivo GIF não foi encontrado: {gif_path}")
             return
 
+        # Rotaciona o GIF antes de exibir
+        rotate_gif(gif_path, rotated_gif_path)
+
         # Certifique-se de que a variável DISPLAY está configurada para :0
         os.environ['DISPLAY'] = ':0'
 
         # Comando para executar o mpv com um método de saída de vídeo específico
-        command = ['mpv', '--fullscreen', '--loop=inf', '--vo=gpu', '--gpu-context=x11egl', gif_path]
+        command = ['mpv', '--fullscreen', '--loop=inf', '--vo=gpu', '--gpu-context=x11egl', rotated_gif_path]
 
         # Termina o processo anterior, se houver
         if current_process:
