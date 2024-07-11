@@ -155,6 +155,9 @@ python_package_exists() {
     pip3 show "$1" >/dev/null 2>&1
 }
 
+# Obter o diretório atual
+CURRENT_DIR=$(pwd)
+
 # Instalação de dependências do sistema
 echo "Instalando dependências do sistema..."
 sudo apt-get update
@@ -193,28 +196,40 @@ fi
 
 # Configuração inicial do workspace
 echo "Criando o workspace e o pacote..."
-mkdir -p ~/lisa_ws/src
-cd ~/lisa_ws/
+mkdir -p "$CURRENT_DIR/lisa_ws/src"
+cd "$CURRENT_DIR/lisa_ws/"
 catkin_make
 
 source devel/setup.bash
-echo "source ~/lisa_ws/devel/setup.bash" >> ~/.bashrc
+echo "source $CURRENT_DIR/lisa_ws/devel/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 
-cd ~/lisa_ws/src
+cd "$CURRENT_DIR/lisa_ws/src"
 
 catkin_create_pkg estrutura std_msgs rospy roscpp
-cd ~/lisa_ws
+cd "$CURRENT_DIR/lisa_ws"
 
-# Clonar o repositório diretamente no pacote
-cd ~/lisa_ws/src/estrutura
-git clone --depth 1 https://github.com/MHC-CodeSmith/LISA_MHC.git .
-rm -rf .git
-chmod +x scripts/*.py
+# Criar um diretório temporário para clonar o repositório
+TEMP_DIR=$(mktemp -d)
+
+# Clonar o repositório diretamente no diretório temporário
+echo "Clonando o repositório..."
+if ! git clone https://github.com/Grupo-SEMEAR-USP/Lisa.git "$TEMP_DIR"; then
+    echo "Erro ao clonar o repositório. Verifique a URL e sua conexão com a internet."
+    exit 1
+fi
+
+# Copiar o conteúdo do repositório clonado para o pacote criado
+echo "Copiando arquivos do repositório para o pacote..."
+cp -r $TEMP_DIR/* "$CURRENT_DIR/lisa_ws/src/estrutura/"
+rm -rf $TEMP_DIR
+
+# Garantir que os scripts são executáveis
+chmod +x "$CURRENT_DIR/lisa_ws/src/estrutura/scripts/*.py"
 
 # Atualizar CMakeLists.txt
 echo "Atualizando CMakeLists.txt..."
-cat <<EOL > ~/lisa_ws/src/estrutura/CMakeLists.txt
+cat <<EOL > "$CURRENT_DIR/lisa_ws/src/estrutura/CMakeLists.txt"
 cmake_minimum_required(VERSION 3.0.2)
 project(estrutura)
 
@@ -246,7 +261,7 @@ EOL
 
 # Criar package.xml
 echo "Criando package.xml..."
-cat <<EOL > ~/lisa_ws/src/estrutura/package.xml
+cat <<EOL > "$CURRENT_DIR/lisa_ws/src/estrutura/package.xml"
 <?xml version="1.0"?>
 <package format="2">
   <name>estrutura</name>
@@ -285,7 +300,7 @@ EOL
 
 # Compilar o workspace
 echo "Compilando o workspace..."
-cd ~/lisa_ws
+cd "$CURRENT_DIR/lisa_ws"
 catkin_make
 
 source devel/setup.bash
@@ -293,7 +308,7 @@ echo "Configuração concluída com sucesso."
 
 ```
 
-### Passo 2: Salvar o Script: Salve o script acima em um arquivo chamado setup_workspace.sh. (crtl-V dentro do nano e depois crtl-O Enter e ctrl-X)
+### Passo 2: (Abra o terminal no caminho que você quer salvar o workspace) Salvar o Script: Salve o script acima em um arquivo chamado setup_workspace.sh. (crtl-V dentro do nano e depois crtl-O Enter e ctrl-X)
 ```bash
 touch setup_workspace.sh && nano setup_workspace.sh
 ```
