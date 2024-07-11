@@ -25,7 +25,7 @@ def play_gif(gif_name):
     global current_process, current_gif, last_gif_time
     try:
         # Define o caminho absoluto para o diretório das imagens
-        gif_path = os.path.join('/home/murilo/lisa/lisa_ws/src/estrutura/Images/telas', gif_name)
+        gif_path = os.path.join('/home/gabriel/lisa_ws/src/estrutura/Images/telas', gif_name)
         rospy.loginfo(f"Tentando exibir GIF: {gif_path}")
 
         # Verifica se o arquivo existe
@@ -60,7 +60,7 @@ def estado_callback(data):
         if data.data:
             rospy.loginfo("Estado mudou para True. Exibindo animated_standard_cursor.gif.")
             play_gif('animated_movimento.gif')
-            time.sleep(4)
+            time.sleep(3)
             play_gif('animated_standard_cursor.gif')
             is_sleeping = False  # Reset sleeping state
         else:
@@ -71,7 +71,7 @@ def estado_callback(data):
 def modo_amor():
     rospy.loginfo("Modo Amor Ativado!")
     play_gif('animated_inlove.gif')
-    time.sleep(10)
+    time.sleep(6)
     play_gif('animated_standard.gif')
 
 def modo_festa():
@@ -80,12 +80,6 @@ def modo_festa():
     time.sleep(4)
     play_gif('animated_dizzy.gif')
     time.sleep(3)
-    play_gif('animated_standard.gif')
-
-def modo_raiva():
-    rospy.loginfo("Modo Raiva Ativado!")
-    play_gif('animated_angry.gif')
-    time.sleep(10)
     play_gif('animated_standard.gif')
 
 def modo_educativo():
@@ -118,8 +112,6 @@ def resultados_callback(data):
         modo_educativo()
     elif "ativando o modo susto" in data.data:
         modo_susto()
-    elif "ativando o modo raiva" in data.data:
-        modo_raiva()  
     else:
         gesture_mapping = {
             'Thumb_Up': 'grooving', # feliz
@@ -148,6 +140,9 @@ def sleep_timer():
         current_time = time.time()
         if current_time - last_gif_time > sleep_timeout and not is_sleeping:
             rospy.loginfo("Tempo de inatividade excedido. Exibindo animated_sleepy.gif.")
+            if is_sleeping == False:
+                play_gif('animated_sleepy1.gif')
+            time.sleep(10)
             play_gif(sleep_gif_name)
             is_sleeping = True  # Indica que o modo sleepy foi ativado
         time.sleep(1)  # Verifica a cada segundo
