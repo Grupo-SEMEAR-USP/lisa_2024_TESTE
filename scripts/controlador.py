@@ -8,6 +8,7 @@ import time
 
 class Controlador:
     def __init__(self):
+        
         rospy.init_node('controlador_node')
         rospy.wait_for_service('/get_finger_count')
         rospy.wait_for_service('/recognize_gesture')
@@ -24,7 +25,6 @@ class Controlador:
         self.stop_counting = False
         self.gesture_active = False
         self.mode_active = False
-        self.drawing_active = False  # Variável para controlar o serviço de desenho
         self.rate = rospy.Rate(1)  # 1 Hz
 
     def image_callback(self, msg):
@@ -39,7 +39,7 @@ class Controlador:
         self.gesture_active = False
         self.mode_active = False
         self.stop_counting = False
-        self.drawing_active = False  # Reinicia o estado do serviço de desenho
+        # self.drawing_active = False  # Reinicia o estado do serviço de desenho
         rospy.set_param('/stop_counting', False)
 
     def run(self):
@@ -71,24 +71,24 @@ class Controlador:
                     continue
 
 
-                if self.drawing_active:
-                    rospy.loginfo("Serviço de desenho no quadro ativado...")
-                    try:
-                        draw_response = self.draw_on_board()
-                        if draw_response.success:
-                            rospy.loginfo("Desenho no quadro concluído.")
-                        else:
-                            rospy.loginfo("Falha ao desenhar no quadro.")
-                    except rospy.ServiceException as e:
-                        rospy.logerr("Falha ao chamar o serviço de desenho: %s", e)
-                    self.rate.sleep()
-                    continue
+                # if self.drawing_active:
+                #     rospy.loginfo("Serviço de desenho no quadro ativado...")
+                #     try:
+                #         draw_response = self.draw_on_board()
+                #         if draw_response.success:
+                #             rospy.loginfo("Desenho no quadro concluído.")
+                #         else:
+                #             rospy.loginfo("Falha ao desenhar no quadro.")
+                #     except rospy.ServiceException as e:
+                #         rospy.logerr("Falha ao chamar o serviço de desenho: %s", e)
+                #     self.rate.sleep()
+                #     continue
 
-                else:
-                    rospy.loginfo("Não está contando e nenhum serviço ativo...")
-                    if self.face_detected:
-                        self.reset_states()
-                    continue
+                # else:
+                #     rospy.loginfo("Não está contando e nenhum serviço ativo...")
+                #     if self.face_detected:
+                #         self.reset_states()
+                #     continue
 
             if not self.stop_counting:
                 try:
@@ -141,8 +141,8 @@ class Controlador:
                         #     self.stop_counting = True
                         #     rospy.set_param('/stop_counting', True)
 
-                        elif finger_count == 10 and not self.mode_active:
-                            rospy.loginfo("Contador é 10, ativando modo susto.")
+                        elif finger_count == 3 and not self.mode_active:
+                            rospy.loginfo("Contador é 3, ativando modo susto.")
                             self.result_pub.publish("ativando o modo susto")
                             self.mode_active = True
                             self.stop_counting = True
